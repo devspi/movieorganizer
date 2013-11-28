@@ -24,12 +24,12 @@ public class CollectionSummaryPanel extends JPanel {
     private final JLabel       posterLabel;
     private final JButton      addButton;
 
-    private final CollectionDO collectionDO;
+    private final CollectionDO summaryCollectionDO;
     private final UserMovieDM  userMovieDM;
 
     public CollectionSummaryPanel(final CollectionDO collectionDO) {
         this.userMovieDM = MovieOrganizerSession.getSession().getDataManagerRepository().getUserMovieDM();
-        this.collectionDO = collectionDO;
+        this.summaryCollectionDO = collectionDO;
         this.nameLabel = new JHyperlinkLabel(collectionDO.getName(Locale.FRENCH), new Runnable() {
 
             @Override
@@ -64,11 +64,11 @@ public class CollectionSummaryPanel extends JPanel {
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)
     private void addCollectionToUserMovie() {
         MovieOrganizerSession.getSession().getControllerRepository().getTmdbController()
-                .requestCollection(this.collectionDO.getIdentifier().toString(), Locale.FRENCH, new Executable<CollectionDO>() {
+                .requestCollection(this.summaryCollectionDO.getIdentifier().toString(), Locale.FRENCH, new Executable<CollectionDO>() {
 
                     @Override
-                    public void execute(final CollectionDO arg0) {
-                        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(arg0);
+                    public void execute(final CollectionDO collection) {
+                        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(collection);
                     }
                 });
     }
