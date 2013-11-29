@@ -18,9 +18,15 @@ import exane.osgi.jexlib.common.swing.table.renderer.AbstractLabelCellRenderer;
  * @author zigah_d
  */
 public class DateCellRenderer extends AbstractLabelCellRenderer {
-    private static final long       serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-    private static final DateFormat DATE_FORMAT      = TimeTools.getDateFormat(TimeTools.dd_MM_yyyy_PATTERN);
+    private static DateFormat DATE_FORMAT      = TimeTools.getDateFormat(TimeTools.dd_MM_yyyy_PATTERN);
+
+    public DateCellRenderer(final DateFormat dateFormat) {
+        super();
+        setHorizontalAlignment(SwingConstants.RIGHT);
+        DateCellRenderer.DATE_FORMAT = dateFormat;
+    }
 
     public DateCellRenderer() {
         super();

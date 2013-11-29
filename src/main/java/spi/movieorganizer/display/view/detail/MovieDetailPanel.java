@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.Locale;
@@ -36,9 +37,11 @@ public class MovieDetailPanel extends JPanel {
     private final JLabel              voteCountLabel;
     private final JLabel              posterLabel;
     private final JTextArea           overviewLabel;
-
+    private final JScrollPane         scrollPane;
     private final JXLayer<JComponent> lockedLayer;
     private final BusyPainterUI       busyPainterUI;
+
+    private MovieDO                   movieDO;
 
     public MovieDetailPanel() {
         this.titleLabel = new JLabel();
@@ -80,16 +83,16 @@ public class MovieDetailPanel extends JPanel {
         contentPanel.add(overviewTitleLabel, "spanx, wrap");
         contentPanel.add(this.overviewLabel, "spanx, growx");
 
-        final JScrollPane scrollPane = new JScrollPane(contentPanel);
-        scrollPane.setBackground(null);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setBorder(null);
+        this.scrollPane = new JScrollPane(contentPanel);
+        this.scrollPane.setBackground(null);
+        this.scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        this.scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        this.scrollPane.setBorder(null);
 
         final JPanel globalPanel = new JPanel(new MigLayout("ins 0, gap 0", "[][fill, grow]", "fill, grow"));
         globalPanel.setBackground(new Color(234, 234, 234));
         globalPanel.add(posterPanel);
-        globalPanel.add(scrollPane);
+        globalPanel.add(this.scrollPane);
 
         this.lockedLayer = new JXLayer<>(globalPanel, this.busyPainterUI = new BusyPainterUI());
         this.lockedLayer.getView().setVisible(false);
@@ -100,9 +103,7 @@ public class MovieDetailPanel extends JPanel {
 
             @Override
             public void componentResized(final ComponentEvent e) {
-                final Dimension dimension = new Dimension(scrollPane.getViewport().getSize().width - 15, MovieDetailPanel.this.overviewLabel.getMinimumSize().height);
-                MovieDetailPanel.this.overviewLabel.setSize(dimension);
-                MovieDetailPanel.this.overviewLabel.setPreferredSize(dimension);
+                resizeContent();
             }
         });
     }
@@ -111,8 +112,14 @@ public class MovieDetailPanel extends JPanel {
         this.busyPainterUI.setLocked(true);
     }
 
-    public void setMovie(final MovieDO movieDO) {
+    private void resizeContent() {
+        final Dimension dimension = new Dimension(this.scrollPane.getViewport().getSize().width - 15, MovieDetailPanel.this.overviewLabel.getMinimumSize().height);
+        this.overviewLabel.setSize(dimension);
+        this.overviewLabel.setPreferredSize(dimension);
+    }
 
+    public void setMovie(final MovieDO movieDO) {
+        this.movieDO = movieDO;
         this.titleLabel.setText(movieDO.getTitle(Locale.FRENCH));
         this.releaseDateLabel.setText("(" + TimeTools.format(TimeTools.yyyy_PATTERN, movieDO.getReleaseDate()) + ")");
         this.releaseDateLabel.setToolTipText(TimeTools.format(TimeTools.dd_MM_yyyy_PATTERN, movieDO.getReleaseDate()));
@@ -127,5 +134,22 @@ public class MovieDetailPanel extends JPanel {
 
         repaint();
         revalidate();
+
+        this.shouldResize = true;
+    }
+
+    public MovieDO getMovieDO() {
+        return this.movieDO;
+    }
+
+    private boolean shouldResize = false;
+
+    @Override
+    protected void paintComponent(final Graphics g) {
+        if (this.shouldResize) {
+            resizeContent();
+            this.shouldResize = false;
+        }
+        super.paintComponent(g);
     }
 }

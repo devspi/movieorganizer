@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.concurrent.Executor;
 
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult;
+import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.collection.CollectionDM;
 import spi.movieorganizer.data.collection.CollectionDO;
 import spi.movieorganizer.data.collection.CollectionPartDO;
@@ -41,6 +42,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
@@ -74,7 +76,6 @@ public class UserMovieController implements IUserMovieController {
         this.userMovieDM = session.getDataManagerRepository().getUserMovieDM();
 
         this.movieCollectionFile = new File(MovieOrganizerConstant.MOVIE_COLLECTION_PATH);
-        this.movieCollectionFile.setWritable(true);
         try {
             if (!this.movieCollectionFile.exists())
                 this.movieCollectionFile.createNewFile();
@@ -120,47 +121,54 @@ public class UserMovieController implements IUserMovieController {
     }
 
     @Override
-    public void removeFromUserMovie(final Integer movieId) {
-        if (this.userMovieDM.hasDataObjectKey(movieId)) {
-            this.userMovieDM.removeDataObjectKey(movieId);
+    public void removeFromUserMovie(final List<Integer> movieIds) {
+        this.actionExecutor.execute(new Runnable() {
 
-            try {
-                final File tempFile = new File("temp.txt");
-                String line = null;
-                final PrintWriter printWriter = new PrintWriter(new FileWriter(tempFile));
-                final BufferedReader reader = new BufferedReader(new FileReader(UserMovieController.this.movieCollectionFile));
-                while ((line = reader.readLine()) != null) {
-                    if (line.startsWith("{\"id\":" + String.valueOf(movieId)))
-                        continue;
-                    printWriter.println(line);
-                    printWriter.flush();
+            @Override
+            public void run() {
+                try {
+                    final File tempFile = new File("temp.txt");
+                    final PrintWriter printWriter = new PrintWriter(new FileWriter(tempFile));
+
+                    String line = null;
+                    final BufferedReader reader = new BufferedReader(new FileReader(UserMovieController.this.movieCollectionFile));
+                    while ((line = reader.readLine()) != null) {
+                        final JsonElement element = new JsonParser().parse(line);
+                        final JsonObject jsonObject = element.getAsJsonObject();
+                        final Integer id = JSonUtilities.getValueAsInteger("id", jsonObject);
+                        if (movieIds.contains(id) == false) {
+                            printWriter.println(line);
+                            printWriter.flush();
+                        } else
+                            System.out.println("discard: " + line);
+                    }
+                    printWriter.close();
+                    reader.close();
+                    UserMovieController.this.writer.close();
+
+                    if (UserMovieController.this.movieCollectionFile.delete())
+                        if (tempFile.renameTo(UserMovieController.this.movieCollectionFile)) {
+                            UserMovieController.this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(UserMovieController.this.movieCollectionFile, true),
+                                    "UTF-8"));
+                            UserMovieController.this.updatesExecutor.execute(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    for (final Integer movieId : movieIds) {
+                                        System.out.println("remove: " + movieId);
+                                        UserMovieController.this.userMovieDM.removeDataObjectKey(movieId);
+                                    }
+                                }
+                            });
+                        }
+                } catch (final Exception e) {
+
                 }
-                printWriter.close();
-                reader.close();
-                if (UserMovieController.this.movieCollectionFile.delete()) {
-                    System.out.println("deleted!");
-                    if (tempFile.renameTo(UserMovieController.this.movieCollectionFile))
-                        System.out.println("update succeed");
-                }
-            } catch (final Exception e) {
-                e.printStackTrace();
             }
-
-            this.actionExecutor.execute(new Runnable() {
-
-                @Override
-                public void run() {
-
-                }
-            });
-
-        }
+        });
     }
 
-    @Override
-    public void addToUserMovie(final MovieDO movieDO) {
-        if (this.userMovieDM.hasDataObjectKey(movieDO.getIdentifier()))
-            return;
+    private void writeToUserMovie(final MovieDO movieDO) {
         this.actionExecutor.execute(new Runnable() {
 
             @Override
@@ -185,22 +193,45 @@ public class UserMovieController implements IUserMovieController {
     }
 
     @Override
-    public void addToUserMovie(final CollectionDO collectionDO) {
-        for (final CollectionPartDO collectionPartDO : collectionDO.getCollectionPartDM())
-            this.loadMovieExecutor.executeQueue(collectionPartDO.getIdentifier().toString(), new Runnable() {
+    public void addToUserMovie(final TMDBRequestType type, final Integer itemId) {
+        switch (type) {
+            case Collections:
+                this.session.getControllerRepository().getTmdbController().requestCollection(itemId.toString(), Locale.FRENCH, new Executable<CollectionDO>() {
 
-                @Override
-                public void run() {
-                    UserMovieController.this.session.getControllerRepository().getTmdbController()
-                            .requestMovie(collectionPartDO.getIdentifier().toString(), Locale.FRENCH, new Executable<MovieDO>() {
+                    @Override
+                    public void execute(final CollectionDO collectionDO) {
+                        for (final CollectionPartDO collectionPartDO : collectionDO.getCollectionPartDM())
+                            if (UserMovieController.this.userMovieDM.hasDataObjectKey(collectionPartDO.getIdentifier()) == false)
+                                UserMovieController.this.loadMovieExecutor.executeQueue(collectionPartDO.getIdentifier().toString(), new Runnable() {
 
-                                @Override
-                                public void execute(final MovieDO arg0) {
-                                    addToUserMovie(arg0);
-                                }
-                            });
-                }
-            });
+                                    @Override
+                                    public void run() {
+                                        UserMovieController.this.session.getControllerRepository().getTmdbController()
+                                                .requestMovie(collectionPartDO.getIdentifier().toString(), Locale.FRENCH, new Executable<MovieDO>() {
+
+                                                    @Override
+                                                    public void execute(final MovieDO arg0) {
+                                                        writeToUserMovie(arg0);
+                                                    }
+                                                });
+                                    }
+                                });
+
+                    }
+                });
+                break;
+            case Movies:
+                if (this.userMovieDM.hasDataObjectKey(itemId))
+                    return;
+                this.session.getControllerRepository().getTmdbController().requestMovie(itemId.toString(), Locale.FRENCH, new Executable<MovieDO>() {
+
+                    @Override
+                    public void execute(final MovieDO movieDO) {
+                        writeToUserMovie(movieDO);
+                    }
+                });
+                break;
+        }
     }
 
     @Override

@@ -85,7 +85,8 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
         this.selectPanel = new JPanel(new MigLayout("ins 0, gap 0", "[left]", "[top]15[top]"));
         this.selectPanel.add(this.titleLabel, "wrap");
         this.selectPanel.add(this.selectCheckbox);
-        setLayout(new MigLayout("ins 0, gap 0", "[94px!][94px!]", "[fill, grow, top]"));
+        this.selectPanel.setBackground(null);
+        setLayout(new MigLayout("ins 0, gap 0", "[94px!][::94]", "[fill, grow, top]"));
         add(this.posterLabel);
         add(this.selectPanel);
 
@@ -99,6 +100,10 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
         // add(this.posterLabel, "wrap");
         // add(this.selectPanel);
 
+    }
+
+    public void setSelected(final boolean selected) {
+        this.selectCheckbox.setSelected(selected);
     }
 
     @Override

@@ -43,6 +43,7 @@ public class CenterPanel extends JPanel {
             removeAll();
             add(this.currentContent = this.contentHistory.get(--this.viewIndex));
             revalidate();
+            repaint();
         }
     }
 
@@ -51,6 +52,7 @@ public class CenterPanel extends JPanel {
             removeAll();
             add(this.currentContent = this.contentHistory.get(++this.viewIndex));
             revalidate();
+            repaint();
         }
     }
 }

@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 import spi.movieorganizer.controller.tmdb.TMDBController;
+import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.collection.CollectionDO;
 import spi.movieorganizer.data.movie.UserMovieDM;
 import spi.movieorganizer.display.MovieOrganizerSession;
@@ -63,13 +64,6 @@ public class CollectionSummaryPanel extends JPanel {
 
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)
     private void addCollectionToUserMovie() {
-        MovieOrganizerSession.getSession().getControllerRepository().getTmdbController()
-                .requestCollection(this.summaryCollectionDO.getIdentifier().toString(), Locale.FRENCH, new Executable<CollectionDO>() {
-
-                    @Override
-                    public void execute(final CollectionDO collection) {
-                        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(collection);
-                    }
-                });
+        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(TMDBRequestType.Collections, this.summaryCollectionDO.getIdentifier());
     }
 }

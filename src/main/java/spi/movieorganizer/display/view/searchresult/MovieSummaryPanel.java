@@ -1,5 +1,6 @@
 package spi.movieorganizer.display.view.searchresult;
 
+import java.util.Collections;
 import java.util.Locale;
 
 import javax.swing.JButton;
@@ -8,8 +9,10 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 import spi.movieorganizer.controller.tmdb.TMDBController;
+import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.movie.MovieDO;
 import spi.movieorganizer.data.movie.UserMovieDM;
+import spi.movieorganizer.data.movie.UserMovieDO;
 import spi.movieorganizer.data.util.TimeTools;
 import spi.movieorganizer.display.MovieOrganizerSession;
 import spi.movieorganizer.display.resources.MovieOrganizerStaticResources;
@@ -18,6 +21,8 @@ import exane.osgi.jexlib.common.annotation.JexAction;
 import exane.osgi.jexlib.common.annotation.injector.ActionInjector;
 import exane.osgi.jexlib.common.swing.component.label.JHyperlinkLabel;
 import exane.osgi.jexlib.core.action.Executable;
+import exane.osgi.jexlib.data.manager.listener.DataManagerListener;
+import exane.osgi.jexlib.data.object.ExaneDataType;
 
 public class MovieSummaryPanel extends JPanel {
 
@@ -72,20 +77,30 @@ public class MovieSummaryPanel extends JPanel {
 
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)
     private void addToUserMovie() {
-        MovieOrganizerSession.getSession().getControllerRepository().getTmdbController()
-                .requestMovie(this.summaryMovieDO.getIdentifier().toString(), Locale.FRENCH, new Executable<MovieDO>() {
+        this.userMovieDM.addDataManagerListener(new DataManagerListener<UserMovieDM, UserMovieDO>() {
 
-                    @Override
-                    public void execute(final MovieDO movieDO) {
-                        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(movieDO);
-                        MovieSummaryPanel.this.addButton.setAction(getActionMap().get("removeFromUserMovie"));
-                    }
-                });
+            @Override
+            public void onDataManagerDelete(final UserMovieDM arg0, final Integer arg1, final UserMovieDO arg2) {
+                // nothing todo
+            }
+
+            @Override
+            public void onDataManagerInsert(final UserMovieDM arg0, final Integer arg1, final UserMovieDO arg2) {
+                MovieSummaryPanel.this.userMovieDM.removeDataManagerListener(this);
+                MovieSummaryPanel.this.addButton.setAction(getActionMap().get("removeFromUserMovie"));
+            }
+
+            @Override
+            public void onDataManagerUpdate(final UserMovieDM arg0, final Integer arg1, final ExaneDataType arg2, final UserMovieDO arg3, final Object arg4, final Object arg5) {
+                // nothing todo
+            }
+        }, this.summaryMovieDO.getIdentifier());
+        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(TMDBRequestType.Movies, this.summaryMovieDO.getIdentifier());
     }
 
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)
     private void removeFromUserMovie() {
-        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().removeFromUserMovie(this.summaryMovieDO.getIdentifier());
+        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().removeFromUserMovie(Collections.singletonList(this.summaryMovieDO.getIdentifier()));
         this.addButton.setAction(getActionMap().get("addToUserMovie"));
     }
 }

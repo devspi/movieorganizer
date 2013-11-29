@@ -6,7 +6,7 @@ import spi.movieorganizer.data.movie.UserMovieDO;
 import spi.movieorganizer.display.table.column.movie.MovieAddingDateTableColumn;
 import spi.movieorganizer.display.table.column.movie.MovieOriginalTitleTableColumn;
 import spi.movieorganizer.display.table.column.movie.MoviePopularityTableColumn;
-import spi.movieorganizer.display.table.column.movie.MovieReleaseDateTableColumn;
+import spi.movieorganizer.display.table.column.movie.MovieReleaseYearTableColumn;
 import spi.movieorganizer.display.table.column.movie.MovieTitleTableColumn;
 import spi.movieorganizer.display.table.column.movie.MovieVoteAverageTableColumn;
 import exane.osgi.jexlib.common.swing.table.model.ExaneDataManagerTableModel;
@@ -19,7 +19,7 @@ public class UserMovieTableModel extends ExaneDataManagerTableModel<UserMovieDO>
         super(dataManager);
 
         addColumn(new MovieTitleTableColumn(languageRetriever));
-        addColumn(new MovieReleaseDateTableColumn());
+        addColumn(new MovieReleaseYearTableColumn());
         addColumn(new MovieOriginalTitleTableColumn());
         addColumn(new MovieVoteAverageTableColumn());
         addColumn(new MoviePopularityTableColumn());
