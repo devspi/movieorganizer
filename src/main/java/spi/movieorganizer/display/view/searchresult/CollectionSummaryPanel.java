@@ -11,6 +11,7 @@ import spi.movieorganizer.controller.tmdb.TMDBController;
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.collection.CollectionDO;
 import spi.movieorganizer.data.movie.UserMovieDM;
+import spi.movieorganizer.data.movie.UserMovieSettings;
 import spi.movieorganizer.display.MovieOrganizerSession;
 import spi.movieorganizer.display.resources.MovieOrganizerStaticResources;
 import spi.movieorganizer.display.view.detail.CollectionDetailPanel;
@@ -64,6 +65,7 @@ public class CollectionSummaryPanel extends JPanel {
 
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)
     private void addCollectionToUserMovie() {
-        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(TMDBRequestType.Collections, this.summaryCollectionDO.getIdentifier());
+        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController()
+                .addToUserMovie(TMDBRequestType.Collections, this.summaryCollectionDO.getIdentifier(), UserMovieSettings.createUnknownSettings());
     }
 }

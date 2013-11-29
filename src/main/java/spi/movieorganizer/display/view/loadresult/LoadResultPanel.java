@@ -14,7 +14,6 @@ import javax.swing.border.BevelBorder;
 
 import net.miginfocom.swing.MigLayout;
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult;
-import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.movie.LoadMovie;
 import spi.movieorganizer.display.MovieOrganizerSession;
 import spi.movieorganizer.display.resources.MovieOrganizerStaticResources;
@@ -58,7 +57,7 @@ public class LoadResultPanel extends JPanel {
             public void execute(final DoubleTuple<LoadMovie, TMDBRequestResult> resultTuple) {
                 LoadMoviePanel panel;
                 if ((panel = LoadResultPanel.this.loadMovieMap.get(resultTuple.getFirstValue().getFileName())) != null) {
-                    panel.updateContent(resultTuple.getSecondValue());
+                    panel.updateContent(resultTuple);
                     if (++LoadResultPanel.this.count == LoadResultPanel.this.loadMovieMap.size())
                         getActionMap().get("addSelectedMovies").setEnabled(true);
                 }
@@ -69,7 +68,8 @@ public class LoadResultPanel extends JPanel {
     @JexAction(enabledProperty = false, source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)
     private void addSelectedMovies() {
         for (final LoadMoviePanel panel : this.loadMovieMap.values())
-            for (final DoubleTuple<TMDBRequestType, Integer> item : panel.getSelectedItems())
-                MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(item.getFirstValue(), item.getSecondValue());
+            for (final SelectedItemData itemData : panel.getSelectedItemsData())
+                MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController()
+                        .addToUserMovie(itemData.getRequestType(), itemData.getItemId(), itemData.getSettings());
     }
 }

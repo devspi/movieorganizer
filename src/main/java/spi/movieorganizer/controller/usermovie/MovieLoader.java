@@ -5,7 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import spi.movieorganizer.data.movie.LoadMovie;
-import spi.movieorganizer.data.movie.UserMovieDO.MovieFormat;
+import spi.movieorganizer.data.movie.UserMovieSettings.MovieFormat;
 
 public class MovieLoader {
 

@@ -13,6 +13,7 @@ import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.movie.MovieDO;
 import spi.movieorganizer.data.movie.UserMovieDM;
 import spi.movieorganizer.data.movie.UserMovieDO;
+import spi.movieorganizer.data.movie.UserMovieSettings;
 import spi.movieorganizer.data.util.TimeTools;
 import spi.movieorganizer.display.MovieOrganizerSession;
 import spi.movieorganizer.display.resources.MovieOrganizerStaticResources;
@@ -95,7 +96,8 @@ public class MovieSummaryPanel extends JPanel {
                 // nothing todo
             }
         }, this.summaryMovieDO.getIdentifier());
-        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().addToUserMovie(TMDBRequestType.Movies, this.summaryMovieDO.getIdentifier());
+        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController()
+                .addToUserMovie(TMDBRequestType.Movies, this.summaryMovieDO.getIdentifier(), UserMovieSettings.createUnknownSettings());
     }
 
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)

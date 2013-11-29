@@ -15,11 +15,12 @@ import net.miginfocom.swing.MigLayout;
 import org.jdesktop.jxlayer.JXLayer;
 
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult;
-import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.collection.CollectionDM;
 import spi.movieorganizer.data.collection.CollectionDO;
+import spi.movieorganizer.data.movie.LoadMovie;
 import spi.movieorganizer.data.movie.MovieDM;
 import spi.movieorganizer.data.movie.MovieDO;
+import spi.movieorganizer.display.component.AbstractSelectableItemPanel;
 import spi.movieorganizer.display.component.CollectionSelectablePanel;
 import spi.movieorganizer.display.component.JLabelGradientBackground;
 import spi.movieorganizer.display.component.MovieSelectablePanel;
@@ -28,14 +29,14 @@ import exane.osgi.jexlib.core.type.tuple.DoubleTuple;
 
 public class LoadMoviePanel extends JPanel {
 
-    private final String                        fileName;
-    private final BusyPainterUI                 busyPainterUI;
-    private final JPanel                        resultPanel;
+    private final String                            fileName;
+    private final BusyPainterUI                     busyPainterUI;
+    private final JPanel                            resultPanel;
 
-    List<DoubleTuple<TMDBRequestType, Integer>> selectedItems;
+    private final List<AbstractSelectableItemPanel> selectablePanels;
 
     public LoadMoviePanel(final String fileName) {
-        this.selectedItems = new ArrayList<>();
+        this.selectablePanels = new ArrayList<>();
         final JLabel fileLabel = new JLabelGradientBackground();
         fileLabel.setText(this.fileName = fileName);
         fileLabel.setBackground(Color.BLUE);
@@ -54,7 +55,7 @@ public class LoadMoviePanel extends JPanel {
         this.busyPainterUI.setLocked(true);
     }
 
-    public void updateContent(final TMDBRequestResult result) {
+    public void updateContent(final DoubleTuple<LoadMovie, TMDBRequestResult> resultTuple) {
         String colConstraint = "";
 
         final JLabel resultLabel = new JLabelGradientBackground();
@@ -62,27 +63,32 @@ public class LoadMoviePanel extends JPanel {
         resultLabel.setBackground(Color.BLACK);
         resultLabel.setForeground(Color.WHITE);
 
-        if (result.getMovieDM() != null && result.getMovieDM().getDataObjectCount() > 0) {
+        final LoadMovie loadMovie = resultTuple.getFirstValue();
+        final TMDBRequestResult requestResult = resultTuple.getSecondValue();
+
+        if (requestResult.getMovieDM() != null && requestResult.getMovieDM().getDataObjectCount() > 0) {
             colConstraint += "[][]";
             ((MigLayout) this.resultPanel.getLayout()).setColumnConstraints(colConstraint);
-            resultLabel.setText(result.getMovieDM().getDataObjectCount() + " movies found");
+            resultLabel.setText(requestResult.getMovieDM().getDataObjectCount() + " movies found");
             this.resultPanel.add(resultLabel, "spanx, growx, wrap");
-            final MovieDM movieDM = result.getMovieDM();
+            final MovieDM movieDM = requestResult.getMovieDM();
             for (final MovieDO movieDO : movieDM) {
-                final MovieSelectablePanel panel = new MovieSelectablePanel(this.selectedItems, movieDO);
+                final MovieSelectablePanel panel = new MovieSelectablePanel(movieDO);
                 this.resultPanel.add(panel);
+                this.selectablePanels.add(panel);
                 panel.setSelected(movieDM.getDataObjectCount() == 1);
             }
         }
-        if (result.getCollectionDM() != null && result.getCollectionDM().getDataObjectCount() > 0) {
+        if (requestResult.getCollectionDM() != null && requestResult.getCollectionDM().getDataObjectCount() > 0) {
             colConstraint += colConstraint.isEmpty() ? "[][]" : "10[][]";
             ((MigLayout) this.resultPanel.getLayout()).setColumnConstraints(colConstraint);
-            resultLabel.setText(result.getCollectionDM().getDataObjectCount() + " collections found");
+            resultLabel.setText(requestResult.getCollectionDM().getDataObjectCount() + " collections found");
             this.resultPanel.add(resultLabel, "spanx, growx, wrap");
-            final CollectionDM collectionDM = result.getCollectionDM();
+            final CollectionDM collectionDM = requestResult.getCollectionDM();
             for (final CollectionDO collectionDO : collectionDM) {
-                final CollectionSelectablePanel panel = new CollectionSelectablePanel(this.selectedItems, collectionDO);
+                final CollectionSelectablePanel panel = new CollectionSelectablePanel(collectionDO);
                 this.resultPanel.add(panel);
+                this.selectablePanels.add(panel);
                 panel.setSelected(collectionDM.getDataObjectCount() == 1);
             }
         }
@@ -95,8 +101,12 @@ public class LoadMoviePanel extends JPanel {
         revalidate();
     }
 
-    public List<DoubleTuple<TMDBRequestType, Integer>> getSelectedItems() {
-        return this.selectedItems;
+    public List<SelectedItemData> getSelectedItemsData() {
+        final List<SelectedItemData> itemDatas = new ArrayList<>();
+        for (final AbstractSelectableItemPanel panel : this.selectablePanels)
+            if (panel.isSelected())
+                itemDatas.add(panel.getItemData());
+        return itemDatas;
     }
 
     public String getFileName() {

@@ -27,8 +27,9 @@ import spi.movieorganizer.data.movie.MovieDM;
 import spi.movieorganizer.data.movie.MovieDO;
 import spi.movieorganizer.data.movie.UserMovieDM;
 import spi.movieorganizer.data.movie.UserMovieDO;
-import spi.movieorganizer.data.movie.UserMovieDO.MovieFormat;
-import spi.movieorganizer.data.movie.UserMovieDO.MovieResolution;
+import spi.movieorganizer.data.movie.UserMovieSettings;
+import spi.movieorganizer.data.movie.UserMovieSettings.MovieFormat;
+import spi.movieorganizer.data.movie.UserMovieSettings.MovieResolution;
 import spi.movieorganizer.data.util.JSonUtilities;
 import spi.movieorganizer.data.util.StringMultiLang;
 import spi.movieorganizer.display.MovieOrganizerClient;
@@ -139,8 +140,7 @@ public class UserMovieController implements IUserMovieController {
                         if (movieIds.contains(id) == false) {
                             printWriter.println(line);
                             printWriter.flush();
-                        } else
-                            System.out.println("discard: " + line);
+                        }
                     }
                     printWriter.close();
                     reader.close();
@@ -154,10 +154,8 @@ public class UserMovieController implements IUserMovieController {
 
                                 @Override
                                 public void run() {
-                                    for (final Integer movieId : movieIds) {
-                                        System.out.println("remove: " + movieId);
+                                    for (final Integer movieId : movieIds)
                                         UserMovieController.this.userMovieDM.removeDataObjectKey(movieId);
-                                    }
                                 }
                             });
                         }
@@ -168,13 +166,12 @@ public class UserMovieController implements IUserMovieController {
         });
     }
 
-    private void writeToUserMovie(final MovieDO movieDO) {
+    private void writeToUserMovie(final UserMovieDO userMovieDO) {
         this.actionExecutor.execute(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    final UserMovieDO userMovieDO = new UserMovieDO(movieDO.getIdentifier(), movieDO);
                     UserMovieController.this.writer.append(UserMovieController.this.gson.toJson(userMovieDO));
                     UserMovieController.this.writer.newLine();
                     UserMovieController.this.writer.flush();
@@ -193,7 +190,7 @@ public class UserMovieController implements IUserMovieController {
     }
 
     @Override
-    public void addToUserMovie(final TMDBRequestType type, final Integer itemId) {
+    public void addToUserMovie(final TMDBRequestType type, final Integer itemId, final UserMovieSettings settings) {
         switch (type) {
             case Collections:
                 this.session.getControllerRepository().getTmdbController().requestCollection(itemId.toString(), Locale.FRENCH, new Executable<CollectionDO>() {
@@ -210,8 +207,10 @@ public class UserMovieController implements IUserMovieController {
                                                 .requestMovie(collectionPartDO.getIdentifier().toString(), Locale.FRENCH, new Executable<MovieDO>() {
 
                                                     @Override
-                                                    public void execute(final MovieDO arg0) {
-                                                        writeToUserMovie(arg0);
+                                                    public void execute(final MovieDO movieDO) {
+                                                        final UserMovieDO userMovieDO = new UserMovieDO(movieDO.getIdentifier(), movieDO);
+                                                        userMovieDO.setSettings(settings);
+                                                        writeToUserMovie(userMovieDO);
                                                     }
                                                 });
                                     }
@@ -227,7 +226,9 @@ public class UserMovieController implements IUserMovieController {
 
                     @Override
                     public void execute(final MovieDO movieDO) {
-                        writeToUserMovie(movieDO);
+                        final UserMovieDO userMovieDO = new UserMovieDO(movieDO.getIdentifier(), movieDO);
+                        userMovieDO.setSettings(settings);
+                        writeToUserMovie(userMovieDO);
                     }
                 });
                 break;
@@ -334,10 +335,10 @@ public class UserMovieController implements IUserMovieController {
             jsonMovie.add("genres", UserMovieController.this.gson.toJsonTree(movie.getMovie().getGenres()));
             jsonMovie.add("overview", UserMovieController.this.gson.toJsonTree(movie.getMovie().getOverviewMultiLang()));
 
-            jsonMovie.add("seen", new JsonPrimitive(movie.isSeen()));
+            jsonMovie.add("seen", new JsonPrimitive(movie.getSettings().isSeen()));
             jsonMovie.add("adding_date", new JsonPrimitive(movie.getAddingDate().getTime()));
-            jsonMovie.add("resolution", new JsonPrimitive(movie.getMovieResolution().name()));
-            jsonMovie.add("format", new JsonPrimitive(movie.getMovieFormat().name()));
+            jsonMovie.add("resolution", new JsonPrimitive(movie.getSettings().getMovieResolution().name()));
+            jsonMovie.add("format", new JsonPrimitive(movie.getSettings().getMovieFormat().name()));
             return jsonMovie;
         }
     }
@@ -373,7 +374,7 @@ public class UserMovieController implements IUserMovieController {
             movieDO.setOverviewMutliLang(overview);
             movieDO.setGenres(genres);
 
-            final UserMovieDO userMovieDO = new UserMovieDO(movieDO.getIdentifier(), movieDO, new Date(addingDate), seen, movieFormat, movieResolution);
+            final UserMovieDO userMovieDO = new UserMovieDO(movieDO.getIdentifier(), movieDO, new Date(addingDate), new UserMovieSettings(seen, movieFormat, movieResolution));
 
             return userMovieDO;
         }

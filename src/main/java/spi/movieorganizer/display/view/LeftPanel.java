@@ -94,8 +94,16 @@ public class LeftPanel extends JPanel {
 
         @Override
         public void onDataManagerDelete(final UserMovieDM userMovieDM, final Integer index, final UserMovieDO userMovieDO) {
-            // TODO Auto-generated method stub
-
+            final DefaultTreeModel model = (DefaultTreeModel) LeftPanel.this.tree.getModel();
+            for (final Integer genreId : userMovieDO.getMovie().getGenres())
+                if (userMovieDM.countMovieForGenre(genreId) == 0)
+                    for (int i = 0; i < model.getChildCount(model.getRoot()); i++) {
+                        final DefaultMutableTreeNode node = (DefaultMutableTreeNode) model.getChild(model.getRoot(), i);
+                        if (node.getUserObject().equals(genreId)) {
+                            model.removeNodeFromParent(node);
+                            break;
+                        }
+                    }
         }
 
         @Override
@@ -105,6 +113,7 @@ public class LeftPanel extends JPanel {
                 if (LeftPanel.this.userGenreList.contains(genreId) == false) {
                     model.insertNodeInto(new DefaultMutableTreeNode(genreId), (MutableTreeNode) model.getRoot(), model.getChildCount(model.getRoot()));
                     LeftPanel.this.userGenreList.add(genreId);
+                    ((DefaultTreeModel) LeftPanel.this.tree.getModel()).reload();
                 }
         }
 
