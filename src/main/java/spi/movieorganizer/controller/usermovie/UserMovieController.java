@@ -287,29 +287,6 @@ public class UserMovieController implements IUserMovieController {
                                         });
                                     }
                                 }, false);
-                    // UserMovieController.this.session.getControllerRepository().getTmdbController().search(loadMovie.getName(), Locale.FRENCH, new Executable<TMDBRequestResult>()
-                    // {
-                    //
-                    // @Override
-                    // public void execute(final TMDBRequestResult result) {
-                    // final SimpleDateFormat format = new SimpleDateFormat("yyyy");
-                    // final MovieDM exactMovies = new MovieDM();
-                    // if (loadMovie.getYear() != null && loadMovie.isCollection() == false)
-                    // for (final MovieDO movieDO : result.getMovieDM()) {
-                    // final String year = format.format(movieDO.getReleaseDate());
-                    // if (year.equals(loadMovie.getYear()))
-                    // exactMovies.addDataObject(movieDO);
-                    // }
-                    //
-                    // final TMDBRequestResult requestResult = new TMDBRequestResult();
-                    // requestResult.setCollectionDM(result.getCollectionDM());
-                    // if (exactMovies.getDataObjectCount() > 0)
-                    // requestResult.setMovieDM(exactMovies);
-                    // else
-                    // requestResult.setMovieDM(result.getMovieDM());
-                    // callback.execute(new DoubleTuple<LoadMovie, TMDBRequestResult>(loadMovie, requestResult));
-                    // }
-                    // });
                 }
             });
         }
@@ -321,24 +298,24 @@ public class UserMovieController implements IUserMovieController {
         public JsonElement serialize(final UserMovieDO movie, final Type arg1, final JsonSerializationContext arg2) {
             final JsonObject jsonMovie = new JsonObject();
 
-            jsonMovie.add("id", new JsonPrimitive(movie.getIdentifier()));
-            jsonMovie.add("adult", new JsonPrimitive(movie.getMovie().isAdult()));
-            jsonMovie.add("backdrop_path", new JsonPrimitive(movie.getMovie().getBackdropPath()));
-            jsonMovie.add("original_title", new JsonPrimitive(movie.getMovie().getOriginalTitle()));
-            jsonMovie.add("release_date", new JsonPrimitive(movie.getMovie().getReleaseDate().getTime()));
-            jsonMovie.add("poster_path", new JsonPrimitive(movie.getMovie().getPosterPath()));
-            jsonMovie.add("popularity", new JsonPrimitive(movie.getMovie().getPopularity()));
+            jsonMovie.add("id", JSonUtilities.numberToJsonPrimitive(movie.getIdentifier()));
+            jsonMovie.add("adult", JSonUtilities.booleanToJsonPrimitive(movie.getMovie().isAdult()));
+            jsonMovie.add("backdrop_path", JSonUtilities.stringToJsonPrimitive(movie.getMovie().getBackdropPath()));
+            jsonMovie.add("original_title", JSonUtilities.stringToJsonPrimitive(movie.getMovie().getOriginalTitle()));
+            jsonMovie.add("release_date", JSonUtilities.numberToJsonPrimitive(movie.getMovie().getReleaseDate().getTime()));
+            jsonMovie.add("poster_path", JSonUtilities.stringToJsonPrimitive(movie.getMovie().getPosterPath()));
+            jsonMovie.add("popularity", JSonUtilities.numberToJsonPrimitive(movie.getMovie().getPopularity()));
             jsonMovie.add("title", UserMovieController.this.gson.toJsonTree(movie.getMovie().getTitleMultiLang()));
-            jsonMovie.add("vote_average", new JsonPrimitive(movie.getMovie().getVoteAverage()));
-            jsonMovie.add("vote_count", new JsonPrimitive(movie.getMovie().getVoteCount()));
+            jsonMovie.add("vote_average", JSonUtilities.numberToJsonPrimitive(movie.getMovie().getVoteAverage()));
+            jsonMovie.add("vote_count", JSonUtilities.numberToJsonPrimitive(movie.getMovie().getVoteCount()));
 
             jsonMovie.add("genres", UserMovieController.this.gson.toJsonTree(movie.getMovie().getGenres()));
             jsonMovie.add("overview", UserMovieController.this.gson.toJsonTree(movie.getMovie().getOverviewMultiLang()));
 
-            jsonMovie.add("seen", new JsonPrimitive(movie.getSettings().isSeen()));
-            jsonMovie.add("adding_date", new JsonPrimitive(movie.getAddingDate().getTime()));
-            jsonMovie.add("resolution", new JsonPrimitive(movie.getSettings().getMovieResolution().name()));
-            jsonMovie.add("format", new JsonPrimitive(movie.getSettings().getMovieFormat().name()));
+            jsonMovie.add("seen", JSonUtilities.booleanToJsonPrimitive(movie.getSettings().isSeen()));
+            jsonMovie.add("adding_date", JSonUtilities.numberToJsonPrimitive(movie.getAddingDate().getTime()));
+            jsonMovie.add("resolution", JSonUtilities.stringToJsonPrimitive(movie.getSettings().getMovieResolution().name()));
+            jsonMovie.add("format", JSonUtilities.stringToJsonPrimitive(movie.getSettings().getMovieFormat().name()));
             return jsonMovie;
         }
     }

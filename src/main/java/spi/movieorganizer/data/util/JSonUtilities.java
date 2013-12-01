@@ -13,7 +13,25 @@ public class JSonUtilities {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat();
 
-    public static JsonElement getPrimitive(final String value) {
+    public static JsonElement stringToJsonPrimitive(final String value) {
+        if (value == null)
+            return JsonNull.INSTANCE;
+        return new JsonPrimitive(value);
+    }
+    
+    public static JsonElement charToJsonPrimitive(final Character value) {
+        if (value == null)
+            return JsonNull.INSTANCE;
+        return new JsonPrimitive(value);
+    }
+    
+    public static JsonElement numberToJsonPrimitive(final Number value) {
+        if (value == null)
+            return JsonNull.INSTANCE;
+        return new JsonPrimitive(value);
+    }
+    
+    public static JsonElement booleanToJsonPrimitive(final Boolean value) {
         if (value == null)
             return JsonNull.INSTANCE;
         return new JsonPrimitive(value);
