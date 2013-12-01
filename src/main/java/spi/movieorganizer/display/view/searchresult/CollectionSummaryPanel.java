@@ -27,10 +27,8 @@ public class CollectionSummaryPanel extends JPanel {
     private final JButton      addButton;
 
     private final CollectionDO summaryCollectionDO;
-    private final UserMovieDM  userMovieDM;
 
     public CollectionSummaryPanel(final CollectionDO collectionDO) {
-        this.userMovieDM = MovieOrganizerSession.getSession().getDataManagerRepository().getUserMovieDM();
         this.summaryCollectionDO = collectionDO;
         this.nameLabel = new JHyperlinkLabel(collectionDO.getName(Locale.FRENCH), new Runnable() {
 
@@ -41,7 +39,7 @@ public class CollectionSummaryPanel extends JPanel {
 
                             @Override
                             public void execute(final CollectionDO arg0) {
-                                MovieOrganizerSession.getCenterPanel().setContent(new CollectionDetailPanel(collectionDO));
+                                MovieOrganizerSession.getCenterPanel().setContent(new CollectionDetailPanel(arg0));
                             }
                         });
             }
@@ -52,10 +50,7 @@ public class CollectionSummaryPanel extends JPanel {
 
         ActionInjector.inject(this);
 
-        if (this.userMovieDM.hasDataObjectKey(collectionDO.getIdentifier()))
-            this.addButton = new JButton(getActionMap().get("removeFromUserMovie"));
-        else
-            this.addButton = new JButton(getActionMap().get("addToUserMovie"));
+            this.addButton = new JButton(getActionMap().get("addCollectionToUserMovie"));
 
         setLayout(new MigLayout("ins 0", "[][]", "[][][]"));
         add(this.posterLabel, "spany 4");

@@ -69,7 +69,7 @@ public class SearchPanel extends JPanel {
 
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)
     private void loadFolder() {
-        final JFileChooser fileChooser = new JFileChooser(MovieOrganizerConstant.MOVIEORGANIZER_ROOT_PATH);
+        final JFileChooser fileChooser = new JFileChooser(MovieOrganizerConstant.HARD_DRIVE_MACOSX);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         fileChooser.setFileFilter(new FileNameExtensionFilter("txt files and directory", "txt"));
 
@@ -77,6 +77,7 @@ public class SearchPanel extends JPanel {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             final File file = fileChooser.getSelectedFile();
             if (file.isDirectory()) {
+            	System.out.println(file.getAbsolutePath());
                 final List<String> moveList = new LinkedList<>();
                 for (final File content : file.listFiles())
                     if (content.isDirectory())

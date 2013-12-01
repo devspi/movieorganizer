@@ -14,4 +14,5 @@ public class MovieOrganizerConstant {
     public static String MOVIEORGANIZER_ROOT_PATH;
     public static String MOVIE_COLLECTION_PATH;
 
+    public static String HARD_DRIVE_MACOSX = "/Volumes/WD2TO";
 }

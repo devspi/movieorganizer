@@ -32,6 +32,7 @@ import spi.movieorganizer.data.movie.UserMovieSettings.MovieFormat;
 import spi.movieorganizer.data.movie.UserMovieSettings.MovieResolution;
 import spi.movieorganizer.data.util.JSonUtilities;
 import spi.movieorganizer.data.util.StringMultiLang;
+import spi.movieorganizer.data.util.TimeTools;
 import spi.movieorganizer.display.MovieOrganizerClient;
 import spi.movieorganizer.display.MovieOrganizerClient.ActionExecutor;
 import spi.movieorganizer.repository.MovieOrganizerConstant;
@@ -248,12 +249,11 @@ public class UserMovieController implements IUserMovieController {
 
                             @Override
                             public void execute(final MovieDM movieDM) {
-                                final SimpleDateFormat format = new SimpleDateFormat("yyyy");
                                 final MovieDM exactMovies = new MovieDM();
                                 if (loadMovie.getYear() != null && loadMovie.isCollection() == false)
                                     for (final MovieDO movieDO : movieDM) {
-                                        final String year = format.format(movieDO.getReleaseDate());
-                                        if (year.equals(loadMovie.getYear()))
+                                        final String year = TimeTools.format(TimeTools.yyyy_PATTERN, movieDO.getReleaseDate());
+                                        if (year != null && year.equals(loadMovie.getYear()))
                                             exactMovies.addDataObject(movieDO);
                                     }
                                 final TMDBRequestResult requestResult = new TMDBRequestResult();
