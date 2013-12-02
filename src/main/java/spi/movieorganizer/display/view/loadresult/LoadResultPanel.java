@@ -14,7 +14,7 @@ import javax.swing.border.BevelBorder;
 
 import net.miginfocom.swing.MigLayout;
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult;
-import spi.movieorganizer.data.movie.LoadMovie;
+import spi.movieorganizer.data.movie.LoadedMovieData;
 import spi.movieorganizer.display.MovieOrganizerSession;
 import spi.movieorganizer.display.resources.MovieOrganizerStaticResources;
 import exane.osgi.jexlib.common.annotation.JexAction;
@@ -51,10 +51,10 @@ public class LoadResultPanel extends JPanel {
         add(actionPanel, "wrap");
         add(scrollPane, BorderLayout.CENTER);
 
-        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().loadMovieList(movieList, new Executable<DoubleTuple<LoadMovie, TMDBRequestResult>>() {
+        MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController().loadMovieList(movieList, new Executable<DoubleTuple<LoadedMovieData, TMDBRequestResult>>() {
 
             @Override
-            public void execute(final DoubleTuple<LoadMovie, TMDBRequestResult> resultTuple) {
+            public void execute(final DoubleTuple<LoadedMovieData, TMDBRequestResult> resultTuple) {
                 LoadMoviePanel panel;
                 if ((panel = LoadResultPanel.this.loadMovieMap.get(resultTuple.getFirstValue().getFileName())) != null) {
                     panel.updateContent(resultTuple);

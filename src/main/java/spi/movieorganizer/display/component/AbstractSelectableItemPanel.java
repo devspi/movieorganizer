@@ -17,6 +17,7 @@ import javax.swing.UIManager;
 import net.miginfocom.swing.MigLayout;
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.collection.CollectionDO;
+import spi.movieorganizer.data.movie.LoadedMovieData;
 import spi.movieorganizer.data.movie.MovieDO;
 import spi.movieorganizer.data.movie.UserMovieSettings.MovieFormat;
 import spi.movieorganizer.data.movie.UserMovieSettings.MovieResolution;
@@ -43,7 +44,7 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
     protected final JLabel         titleLabel;
     protected final JCheckBox      selectCheckbox;
 
-    public AbstractSelectableItemPanel() {
+    public AbstractSelectableItemPanel(final LoadedMovieData loadMovie) {
         this.itemData = new SelectedItemData();
         this.posterLabel = new JLabel();
         this.posterLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -96,7 +97,6 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
 
         this.formatComboBox = new JComboBox<>(MovieFormat.values());
         this.formatComboBox.setRenderer(new MovieFormatRenderer());
-        this.formatComboBox.setSelectedItem(this.itemData.getSettings().getMovieFormat());
         this.formatComboBox.addItemListener(new ItemListener() {
 
             @Override
@@ -105,11 +105,11 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
                     AbstractSelectableItemPanel.this.itemData.getSettings().setMovieFormat((MovieFormat) e.getItem());
             }
         });
+        this.formatComboBox.setSelectedItem(loadMovie.getFormat());
         final JLabel formatLabel = new JLabel("Format");
 
         this.resolutionComboBox = new JComboBox<>(MovieResolution.values());
         this.resolutionComboBox.setRenderer(new MovieResolutionRenderer());
-        this.resolutionComboBox.setSelectedItem(this.itemData.getSettings().getMovieResolution());
         this.resolutionComboBox.addItemListener(new ItemListener() {
 
             @Override
@@ -118,29 +118,30 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
                     AbstractSelectableItemPanel.this.itemData.getSettings().setMovieResolution((MovieResolution) e.getItem());
             }
         });
+        this.resolutionComboBox.setSelectedItem(loadMovie.getResolution());
         final JLabel resolutionLabel = new JLabel("Resolution");
 
         this.seenCheckbox = new JCheckBox("I saw it !");
         this.seenCheckbox.setOpaque(false);
         this.seenCheckbox.setMargin(new Insets(0, 0, 0, 0));
 
-        this.settingPanel = new JPanel(new MigLayout("ins 0 10 0 0, gap 0, wrap", "fill, grow", "[][][][][]"));
+        this.settingPanel = new JPanel(new MigLayout("ins 0 2 0 0, gap 0", "[][]", "[][]5[]"));
         this.settingPanel.setOpaque(false);
         this.settingPanel.setVisible(false);
-        this.settingPanel.add(this.seenCheckbox);
         this.settingPanel.add(formatLabel);
+        this.settingPanel.add(resolutionLabel, "wrap");
         this.settingPanel.add(this.formatComboBox);
-        this.settingPanel.add(resolutionLabel);
         this.settingPanel.add(this.resolutionComboBox);
+        this.settingPanel.add(this.seenCheckbox, "spanx 2, newline");
 
         // select panel right from the poster
         this.selectCheckbox.setText("I have it");
-        this.selectPanel = new JPanel(new MigLayout("ins 0, gap 0, hidemode 3", "[left]", "[top][top][top]"));
+        this.selectPanel = new JPanel(new MigLayout("ins 0, gap 0, hidemode 3", "[left]", "[top]2[top]5[top]"));
         this.selectPanel.add(this.titleLabel, "wrap");
         this.selectPanel.add(this.selectCheckbox, "wrap");
         this.selectPanel.add(this.settingPanel);
         this.selectPanel.setBackground(null);
-        setLayout(new MigLayout("ins 0, gap 0", "[94px!][120px!]", "[140::, fill, grow, top]"));
+        setLayout(new MigLayout("ins 0, gap 0", "[94px!][145px!]", "[fill, grow, top]"));
         add(this.posterLabel);
         add(this.selectPanel, "growx");
     }

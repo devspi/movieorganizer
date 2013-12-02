@@ -4,12 +4,14 @@ import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import spi.movieorganizer.data.movie.LoadMovie;
+import spi.movieorganizer.data.movie.LoadedMovieData;
 import spi.movieorganizer.data.movie.UserMovieSettings.MovieFormat;
+import spi.movieorganizer.data.movie.UserMovieSettings.MovieResolution;
 
 public class MovieLoader {
 
-    private static String qualityRegexp;
+    private static String resolutionRegexp;
+    private static String formatRegexp;
     private static String yearRegexp;
     private static String collectionRegexp = "(saga|the complete|complete|dualogy|trilogy|quadrilogy|pentalogy|collection?)";
 
@@ -22,19 +24,26 @@ public class MovieLoader {
         MovieLoader.yearRegexp = sb.toString();
 
         sb = new StringBuilder("(");
-        for (final MovieFormat movieQuality : MovieFormat.values())
-            if (MovieFormat.UNKNOWN.equals(movieQuality) == false)
-                sb.append(movieQuality.getLabel() + (movieQuality.ordinal() + 1 <= MovieFormat.values().length - 2 ? "|" : "]"));
+        for (final MovieFormat movieFormat : MovieFormat.values())
+            if (MovieFormat.UNKNOWN.equals(movieFormat) == false)
+                sb.append(movieFormat.getLabel() + (movieFormat.ordinal() + 1 <= MovieFormat.values().length - 2 ? "|" : "]"));
         sb.append("?)");
-        MovieLoader.qualityRegexp = sb.toString();
+        MovieLoader.formatRegexp = sb.toString();
 
+        sb = new StringBuilder("(");
+        for (final MovieResolution movieResolution : MovieResolution.values())
+            if (MovieResolution.UNKNOWN.equals(movieResolution) == false)
+                sb.append(movieResolution.getLabel() + (movieResolution.ordinal() + 1 <= MovieResolution.values().length - 2 ? "|" : "]"));
+        sb.append("?)");
+        MovieLoader.resolutionRegexp = sb.toString();
     }
 
-    public static LoadMovie getLoadMovie(final String fileName) {
+    public static LoadedMovieData getLoadMovie(final String fileName) {
         final String clearFileName = fileName.replaceAll("[\\-\\_\\.]+", " ").replaceAll("[\\(\\)\\[\\]]+", "");
 
         String name = null;
-        String quality = null;
+        String format = null;
+        String resolution = null;
         String year = null;
         boolean collection = false;
 
@@ -46,11 +55,21 @@ public class MovieLoader {
                 year = matcher.group().trim();
                 lowerIndex = matcher.start();
             }
-        pattern = Pattern.compile(MovieLoader.qualityRegexp, Pattern.CASE_INSENSITIVE);
+
+        pattern = Pattern.compile(MovieLoader.formatRegexp, Pattern.CASE_INSENSITIVE);
         matcher = pattern.matcher(clearFileName);
         if (matcher.find())
             if (matcher.group() != null) {
-                quality = matcher.group().trim();
+                format = matcher.group().trim();
+                if (lowerIndex == -1 || matcher.start() < lowerIndex)
+                    lowerIndex = matcher.start();
+            }
+
+        pattern = Pattern.compile(MovieLoader.resolutionRegexp, Pattern.CASE_INSENSITIVE);
+        matcher = pattern.matcher(clearFileName);
+        if (matcher.find())
+            if (matcher.group() != null) {
+                resolution = matcher.group().trim();
                 if (lowerIndex == -1 || matcher.start() < lowerIndex)
                     lowerIndex = matcher.start();
             }
@@ -69,12 +88,13 @@ public class MovieLoader {
         else
             name = clearFileName;
 
-        // System.out.println("movieName=" + clearFileName);
-        // System.out.println("name=" + name);
-        // System.out.println("year=" + year);
-        // System.out.println("quality=" + quality);
-        // System.out.println("collection=" + collection);
+        MovieFormat movieFormat = MovieFormat.UNKNOWN;
+        if (format != null)
+            movieFormat = MovieFormat.getMovieFormat(format);
+        MovieResolution movieResolution = MovieResolution.UNKNOWN;
+        if (format != null)
+            movieResolution = MovieResolution.getMovieResolution(resolution);
 
-        return new LoadMovie(fileName, name, quality, year, collection);
+        return new LoadedMovieData(fileName, name, movieFormat, movieResolution, year, collection);
     }
 }

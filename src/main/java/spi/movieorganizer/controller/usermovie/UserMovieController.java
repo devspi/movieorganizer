@@ -22,7 +22,7 @@ import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.collection.CollectionDM;
 import spi.movieorganizer.data.collection.CollectionDO;
 import spi.movieorganizer.data.collection.CollectionPartDO;
-import spi.movieorganizer.data.movie.LoadMovie;
+import spi.movieorganizer.data.movie.LoadedMovieData;
 import spi.movieorganizer.data.movie.MovieDM;
 import spi.movieorganizer.data.movie.MovieDO;
 import spi.movieorganizer.data.movie.UserMovieDM;
@@ -237,9 +237,9 @@ public class UserMovieController implements IUserMovieController {
     }
 
     @Override
-    public void loadMovieList(final List<String> fileNames, final Executable<DoubleTuple<LoadMovie, TMDBRequestResult>> callback) {
+    public void loadMovieList(final List<String> fileNames, final Executable<DoubleTuple<LoadedMovieData, TMDBRequestResult>> callback) {
         for (final String fileName : fileNames) {
-            final LoadMovie loadMovie = MovieLoader.getLoadMovie(fileName);
+            final LoadedMovieData loadMovie = MovieLoader.getLoadMovie(fileName);
             this.loadMovieExecutor.executeQueue(fileName, new Runnable() {
 
                 @Override
@@ -265,7 +265,7 @@ public class UserMovieController implements IUserMovieController {
 
                                     @Override
                                     public void run() {
-                                        callback.execute(new DoubleTuple<LoadMovie, TMDBRequestResult>(loadMovie, requestResult));
+                                        callback.execute(new DoubleTuple<LoadedMovieData, TMDBRequestResult>(loadMovie, requestResult));
                                     }
                                 });
                             }
@@ -282,7 +282,7 @@ public class UserMovieController implements IUserMovieController {
 
                                             @Override
                                             public void run() {
-                                                callback.execute(new DoubleTuple<LoadMovie, TMDBRequestResult>(loadMovie, requestResult));
+                                                callback.execute(new DoubleTuple<LoadedMovieData, TMDBRequestResult>(loadMovie, requestResult));
                                             }
                                         });
                                     }

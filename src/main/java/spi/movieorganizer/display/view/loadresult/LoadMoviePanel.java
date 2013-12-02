@@ -17,7 +17,7 @@ import org.jdesktop.jxlayer.JXLayer;
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult;
 import spi.movieorganizer.data.collection.CollectionDM;
 import spi.movieorganizer.data.collection.CollectionDO;
-import spi.movieorganizer.data.movie.LoadMovie;
+import spi.movieorganizer.data.movie.LoadedMovieData;
 import spi.movieorganizer.data.movie.MovieDM;
 import spi.movieorganizer.data.movie.MovieDO;
 import spi.movieorganizer.display.component.AbstractSelectableItemPanel;
@@ -55,7 +55,7 @@ public class LoadMoviePanel extends JPanel {
         this.busyPainterUI.setLocked(true);
     }
 
-    public void updateContent(final DoubleTuple<LoadMovie, TMDBRequestResult> resultTuple) {
+    public void updateContent(final DoubleTuple<LoadedMovieData, TMDBRequestResult> resultTuple) {
         String colConstraint = "";
 
         final JLabel resultLabel = new JLabelGradientBackground();
@@ -63,7 +63,7 @@ public class LoadMoviePanel extends JPanel {
         resultLabel.setBackground(Color.BLACK);
         resultLabel.setForeground(Color.WHITE);
 
-        final LoadMovie loadMovie = resultTuple.getFirstValue();
+        final LoadedMovieData loadMovie = resultTuple.getFirstValue();
         final TMDBRequestResult requestResult = resultTuple.getSecondValue();
 
         if (requestResult.getMovieDM() != null && requestResult.getMovieDM().getDataObjectCount() > 0) {
@@ -73,7 +73,7 @@ public class LoadMoviePanel extends JPanel {
             this.resultPanel.add(resultLabel, "spanx, growx, wrap");
             final MovieDM movieDM = requestResult.getMovieDM();
             for (final MovieDO movieDO : movieDM) {
-                final MovieSelectablePanel panel = new MovieSelectablePanel(movieDO);
+                final MovieSelectablePanel panel = new MovieSelectablePanel(loadMovie, movieDO);
                 this.resultPanel.add(panel);
                 this.selectablePanels.add(panel);
                 panel.setSelected(movieDM.getDataObjectCount() == 1);
@@ -86,7 +86,7 @@ public class LoadMoviePanel extends JPanel {
             this.resultPanel.add(resultLabel, "spanx, growx, wrap");
             final CollectionDM collectionDM = requestResult.getCollectionDM();
             for (final CollectionDO collectionDO : collectionDM) {
-                final CollectionSelectablePanel panel = new CollectionSelectablePanel(collectionDO);
+                final CollectionSelectablePanel panel = new CollectionSelectablePanel(loadMovie, collectionDO);
                 this.resultPanel.add(panel);
                 this.selectablePanels.add(panel);
                 panel.setSelected(collectionDM.getDataObjectCount() == 1);

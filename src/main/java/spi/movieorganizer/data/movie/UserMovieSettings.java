@@ -15,6 +15,13 @@ public class UserMovieSettings {
         public String getLabel() {
             return this.label;
         }
+
+        public static MovieResolution getMovieResolution(final String label) {
+            for (final MovieResolution resolution : MovieResolution.values())
+                if (resolution.getLabel().equalsIgnoreCase(label))
+                    return resolution;
+            return null;
+        }
     }
 
     public static enum MovieFormat {
@@ -32,6 +39,13 @@ public class UserMovieSettings {
 
         public String getLabel() {
             return this.label;
+        }
+
+        public static MovieFormat getMovieFormat(final String label) {
+            for (final MovieFormat format : MovieFormat.values())
+                if (format.getLabel().equalsIgnoreCase(label))
+                    return format;
+            return null;
         }
 
     }
