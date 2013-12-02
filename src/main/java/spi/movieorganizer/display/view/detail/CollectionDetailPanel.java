@@ -65,7 +65,7 @@ public class CollectionDetailPanel extends JPanel {
                                     movieDetailPanel.setMovie(arg0);
                                     MovieOrganizerSession.getCenterPanel().setContent(movieDetailPanel);
                                 }
-                            });
+                            }, true);
                 }
             });
             this.releaseDateLabel = new JLabel("(" + CollectionDetailPanel.this.yearDateFormat.format(partDO.getReleaseDate()) + ")");

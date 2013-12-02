@@ -96,7 +96,8 @@ public class LeftPanel extends JPanel {
         public void onDataManagerDelete(final UserMovieDM userMovieDM, final Integer index, final UserMovieDO userMovieDO) {
             final DefaultTreeModel model = (DefaultTreeModel) LeftPanel.this.tree.getModel();
             for (final Integer genreId : userMovieDO.getMovie().getGenres())
-                if (userMovieDM.countMovieForGenre(genreId) == 0)
+                if (userMovieDM.countMovieForGenre(genreId) == 0) {
+                    LeftPanel.this.userGenreList.remove(genreId);
                     for (int i = 0; i < model.getChildCount(model.getRoot()); i++) {
                         final DefaultMutableTreeNode node = (DefaultMutableTreeNode) model.getChild(model.getRoot(), i);
                         if (node.getUserObject().equals(genreId)) {
@@ -104,6 +105,7 @@ public class LeftPanel extends JPanel {
                             break;
                         }
                     }
+                }
         }
 
         @Override

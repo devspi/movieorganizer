@@ -52,7 +52,7 @@ public class MovieSummaryPanel extends JPanel {
                                 movieDetailPanel.setMovie(arg0);
                                 MovieOrganizerSession.getCenterPanel().setContent(movieDetailPanel);
                             }
-                        });
+                        }, true);
             }
         });
         this.releaseDateLabel = new JLabel(TimeTools.format(TimeTools.dd_MM_yyyy_PATTERN, movieDO.getReleaseDate()));
@@ -97,7 +97,14 @@ public class MovieSummaryPanel extends JPanel {
             }
         }, this.summaryMovieDO.getIdentifier());
         MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController()
-                .addToUserMovie(TMDBRequestType.Movies, this.summaryMovieDO.getIdentifier(), UserMovieSettings.createUnknownSettings());
+                .addToUserMovie(TMDBRequestType.Movies, this.summaryMovieDO.getIdentifier(), UserMovieSettings.createUnknownSettings(), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        // TODO Auto-generated method stub
+
+                    }
+                });
     }
 
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)

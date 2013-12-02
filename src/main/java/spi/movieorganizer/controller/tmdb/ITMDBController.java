@@ -10,9 +10,9 @@ import exane.osgi.jexlib.core.action.Executable;
 
 public interface ITMDBController {
 
-    void requestMovie(String movieId, Locale locale, Executable<MovieDO> callback);
+    void requestMovie(String movieId, Locale locale, Executable<MovieDO> callback, boolean executeCallbackInEDT);
 
-    void requestCollection(String collectionId, Locale locale, Executable<CollectionDO> callback);
+    void requestCollection(String collectionId, Locale locale, Executable<CollectionDO> callback, boolean executeCallbackInEDT);
 
     void searchMovie(String query, Locale locale, Executable<MovieDM> callback, boolean executeCallbackInEDT);
 

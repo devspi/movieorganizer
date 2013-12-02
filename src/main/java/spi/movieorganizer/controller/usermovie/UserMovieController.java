@@ -11,10 +11,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult;
@@ -45,7 +45,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
@@ -167,37 +166,37 @@ public class UserMovieController implements IUserMovieController {
         });
     }
 
-    private void writeToUserMovie(final UserMovieDO userMovieDO) {
-        this.actionExecutor.execute(new Runnable() {
+    private void writeToUserMovie(final UserMovieDO userMovieDO, final Runnable callback) {
+        try {
+            UserMovieController.this.writer.append(UserMovieController.this.gson.toJson(userMovieDO));
+            UserMovieController.this.writer.newLine();
+            UserMovieController.this.writer.flush();
+            UserMovieController.this.updatesExecutor.execute(new Runnable() {
 
-            @Override
-            public void run() {
-                try {
-                    UserMovieController.this.writer.append(UserMovieController.this.gson.toJson(userMovieDO));
-                    UserMovieController.this.writer.newLine();
-                    UserMovieController.this.writer.flush();
-                    UserMovieController.this.updatesExecutor.execute(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            UserMovieController.this.userMovieDM.addDataObject(userMovieDO);
-                        }
-                    });
-                } catch (final Exception e) {
-                    e.printStackTrace();
+                @Override
+                public void run() {
+                    System.out.println(userMovieDO.getMovie().getTitle(Locale.FRENCH) + " written");
+                    UserMovieController.this.userMovieDM.addDataObject(userMovieDO);
+                    callback.run();
                 }
-            }
-        });
+            });
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
-    public void addToUserMovie(final TMDBRequestType type, final Integer itemId, final UserMovieSettings settings) {
+    public void addToUserMovie(final TMDBRequestType type, final Integer itemId, final UserMovieSettings settings, final Runnable onRequestDone) {
+        System.out.println("addToUserMovie type=" + type.name());
         switch (type) {
             case Collections:
                 this.session.getControllerRepository().getTmdbController().requestCollection(itemId.toString(), Locale.FRENCH, new Executable<CollectionDO>() {
 
                     @Override
                     public void execute(final CollectionDO collectionDO) {
+                        System.out.println(collectionDO.getName(Locale.FRENCH) + " have " + collectionDO.getCollectionPartDM().getDataObjectCount() + " to add");
+                        final CountDownLatch countDownLatch = new CountDownLatch(collectionDO.getCollectionPartDM().getDataObjectCount());
                         for (final CollectionPartDO collectionPartDO : collectionDO.getCollectionPartDM())
                             if (UserMovieController.this.userMovieDM.hasDataObjectKey(collectionPartDO.getIdentifier()) == false)
                                 UserMovieController.this.loadMovieExecutor.executeQueue(collectionPartDO.getIdentifier().toString(), new Runnable() {
@@ -211,14 +210,25 @@ public class UserMovieController implements IUserMovieController {
                                                     public void execute(final MovieDO movieDO) {
                                                         final UserMovieDO userMovieDO = new UserMovieDO(movieDO.getIdentifier(), movieDO);
                                                         userMovieDO.setSettings(settings);
-                                                        writeToUserMovie(userMovieDO);
+                                                        writeToUserMovie(userMovieDO, new Runnable() {
+
+                                                            @Override
+                                                            public void run() {
+                                                                countDownLatch.countDown();
+                                                            }
+                                                        });
                                                     }
-                                                });
+                                                }, false);
                                     }
                                 });
-
+                        try {
+                            countDownLatch.await();
+                            UserMovieController.this.updatesExecutor.execute(onRequestDone);
+                        } catch (final InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                });
+                }, false);
                 break;
             case Movies:
                 if (this.userMovieDM.hasDataObjectKey(itemId))
@@ -229,9 +239,9 @@ public class UserMovieController implements IUserMovieController {
                     public void execute(final MovieDO movieDO) {
                         final UserMovieDO userMovieDO = new UserMovieDO(movieDO.getIdentifier(), movieDO);
                         userMovieDO.setSettings(settings);
-                        writeToUserMovie(userMovieDO);
+                        writeToUserMovie(userMovieDO, onRequestDone);
                     }
-                });
+                }, false);
                 break;
         }
     }

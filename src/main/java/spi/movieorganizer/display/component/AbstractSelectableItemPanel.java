@@ -1,6 +1,7 @@
 package spi.movieorganizer.display.component;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -19,6 +20,7 @@ import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.collection.CollectionDO;
 import spi.movieorganizer.data.movie.LoadedMovieData;
 import spi.movieorganizer.data.movie.MovieDO;
+import spi.movieorganizer.data.movie.UserMovieDM;
 import spi.movieorganizer.data.movie.UserMovieSettings.MovieFormat;
 import spi.movieorganizer.data.movie.UserMovieSettings.MovieResolution;
 import spi.movieorganizer.display.MovieOrganizerSession;
@@ -31,25 +33,40 @@ import exane.osgi.jexlib.common.swing.component.label.JHyperlinkLabel;
 import exane.osgi.jexlib.core.action.Executable;
 
 public abstract class AbstractSelectableItemPanel extends JPanel implements ItemListener {
-    private final Color            selectedColor = new Color(60, 210, 90);
+    private final Color            addedColor    = new Color(130, 210, 130);
+    private final Color            selectedColor = new Color(130, 170, 210);
     private final JPanel           selectPanel;
     private final JCheckBox        seenCheckbox;
     private final JComboBox        formatComboBox;
     private final JComboBox        resolutionComboBox;
     private final JPanel           settingPanel;
 
+    private boolean                isAdded;
+    private final JLabel           addedLabel;
+
     private final SelectedItemData itemData;
 
     protected final JLabel         posterLabel;
     protected final JLabel         titleLabel;
     protected final JCheckBox      selectCheckbox;
+    protected final UserMovieDM    userMovieDM;
+
+    abstract protected TMDBRequestType getType();
+
+    abstract protected Integer getItemId();
 
     public AbstractSelectableItemPanel(final LoadedMovieData loadMovie) {
+        this.userMovieDM = MovieOrganizerSession.getSession().getDataManagerRepository().getUserMovieDM();
         this.itemData = new SelectedItemData();
         this.posterLabel = new JLabel();
         this.posterLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         this.posterLabel.setBackground(Color.BLACK);
         this.posterLabel.setOpaque(true);
+
+        this.addedLabel = new JLabel();
+        this.addedLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));
+        this.addedLabel.setFont(this.addedLabel.getFont().deriveFont(Font.BOLD, 14f));
+
         this.titleLabel = new JHyperlinkLabel(null, new Runnable() {
 
             @Override
@@ -64,7 +81,7 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
                                         final CollectionDetailPanel detailPanel = new CollectionDetailPanel(arg0);
                                         MovieOrganizerSession.getCenterPanel().setContent(detailPanel);
                                     }
-                                });
+                                }, true);
                         break;
                     case Movies:
                         MovieOrganizerSession.getSession().getControllerRepository().getTmdbController()
@@ -76,7 +93,7 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
                                         detailPanel.setMovie(arg0);
                                         MovieOrganizerSession.getCenterPanel().setContent(detailPanel);
                                     }
-                                });
+                                }, true);
                         break;
                 }
             }
@@ -84,6 +101,7 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
         this.titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));
         this.titleLabel.setHorizontalTextPosition(SwingConstants.CENTER);
         this.titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
         this.selectCheckbox = new JCheckBox();
         this.selectCheckbox.addItemListener(new ItemListener() {
 
@@ -147,17 +165,28 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
     }
 
     public void setSelected(final boolean selected) {
-        this.selectCheckbox.setSelected(selected);
+        if (this.isAdded == false)
+            this.selectCheckbox.setSelected(selected);
     }
 
     public boolean isSelected() {
-        return this.selectCheckbox.isSelected();
+        return this.selectCheckbox.isSelected() && this.isAdded == false;
     }
 
     public SelectedItemData getItemData() {
         this.itemData.setItemId(getItemId());
         this.itemData.setRequestType(getType());
         return this.itemData;
+    }
+
+    public void fireItemAdded(final String message) {
+        this.isAdded = true;
+        this.addedLabel.setText(message);
+        this.selectPanel.removeAll();
+        this.selectPanel.setBackground(this.addedColor);
+        this.selectPanel.add(this.addedLabel);
+        revalidate();
+        repaint();
     }
 
     @Override
@@ -168,7 +197,4 @@ public abstract class AbstractSelectableItemPanel extends JPanel implements Item
         repaint();
     }
 
-    abstract protected TMDBRequestType getType();
-
-    abstract protected Integer getItemId();
 }

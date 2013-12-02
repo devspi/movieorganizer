@@ -10,7 +10,6 @@ import net.miginfocom.swing.MigLayout;
 import spi.movieorganizer.controller.tmdb.TMDBController;
 import spi.movieorganizer.controller.tmdb.TMDBRequestResult.TMDBRequestType;
 import spi.movieorganizer.data.collection.CollectionDO;
-import spi.movieorganizer.data.movie.UserMovieDM;
 import spi.movieorganizer.data.movie.UserMovieSettings;
 import spi.movieorganizer.display.MovieOrganizerSession;
 import spi.movieorganizer.display.resources.MovieOrganizerStaticResources;
@@ -41,7 +40,7 @@ public class CollectionSummaryPanel extends JPanel {
                             public void execute(final CollectionDO arg0) {
                                 MovieOrganizerSession.getCenterPanel().setContent(new CollectionDetailPanel(arg0));
                             }
-                        });
+                        }, true);
             }
         });
 
@@ -50,7 +49,7 @@ public class CollectionSummaryPanel extends JPanel {
 
         ActionInjector.inject(this);
 
-            this.addButton = new JButton(getActionMap().get("addCollectionToUserMovie"));
+        this.addButton = new JButton(getActionMap().get("addCollectionToUserMovie"));
 
         setLayout(new MigLayout("ins 0", "[][]", "[][][]"));
         add(this.posterLabel, "spany 4");
@@ -61,6 +60,13 @@ public class CollectionSummaryPanel extends JPanel {
     @JexAction(source = MovieOrganizerStaticResources.PROPERTIES_ACTIONS)
     private void addCollectionToUserMovie() {
         MovieOrganizerSession.getSession().getControllerRepository().getUserMovieController()
-                .addToUserMovie(TMDBRequestType.Collections, this.summaryCollectionDO.getIdentifier(), UserMovieSettings.createUnknownSettings());
+                .addToUserMovie(TMDBRequestType.Collections, this.summaryCollectionDO.getIdentifier(), UserMovieSettings.createUnknownSettings(), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        // TODO Auto-generated method stub
+
+                    }
+                });
     }
 }

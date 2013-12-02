@@ -255,7 +255,7 @@ public class TMDBController implements ITMDBController {
     }
 
     @Override
-    public void requestMovie(final String movieId, final Locale locale, final Executable<MovieDO> callback) {
+    public void requestMovie(final String movieId, final Locale locale, final Executable<MovieDO> callback, final boolean executeCallbakcInEDT) {
         this.actionExecutor.execute(new Runnable() {
 
             @Override
@@ -305,15 +305,19 @@ public class TMDBController implements ITMDBController {
                         final JsonObject jsonCompany = companyArray.get(i).getAsJsonObject();
                         companies.add(new CompanyDO(jsonCompany.get("id").getAsInt(), jsonCompany.get("name").getAsString()));
                     }
-                    TMDBController.this.updatesExecutor.execute(new Runnable() {
+                    final MovieDO movieDO = new MovieDO(id, adult, backdropPath, originalTitle, releaseDate, posterPath, popularity, new StringMultiLang(locale, title),
+                            voteAverage, voteCount, budget, genreIds, homepage, imdb_id, new StringMultiLang(locale, overview), companies, revenue, runtime, status, tagline);
 
-                        @Override
-                        public void run() {
-                            callback.execute(new MovieDO(id, adult, backdropPath, originalTitle, releaseDate, posterPath, popularity, new StringMultiLang(locale, title),
-                                    voteAverage, voteCount, budget, genreIds, homepage, imdb_id, new StringMultiLang(locale, overview), companies, revenue, runtime, status,
-                                    tagline));
-                        }
-                    });
+                    if (executeCallbakcInEDT)
+                        TMDBController.this.updatesExecutor.execute(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                callback.execute(movieDO);
+                            }
+                        });
+                    else
+                        callback.execute(movieDO);
                 } catch (final IOException e) {
                     e.printStackTrace();
                 }
@@ -322,7 +326,7 @@ public class TMDBController implements ITMDBController {
     }
 
     @Override
-    public void requestCollection(final String collectionId, final Locale locale, final Executable<CollectionDO> callback) {
+    public void requestCollection(final String collectionId, final Locale locale, final Executable<CollectionDO> callback, final boolean executeCallbackInEDT) {
         this.actionExecutor.execute(new Runnable() {
 
             @Override
@@ -357,16 +361,20 @@ public class TMDBController implements ITMDBController {
                         collectionPartDM.addDataObject(new CollectionPartDO(partId, partBackdropPath, partPosterPath, partReleaseDate, new StringMultiLang(locale, partTitle)));
                     }
 
-                    TMDBController.this.updatesExecutor.execute(new Runnable() {
+                    final CollectionDO collectionDO = new CollectionDO(id, backdropPath, new StringMultiLang(locale, name), posterPath);
+                    collectionDO.setCollectionPartDM(collectionPartDM);
 
-                        @Override
-                        public void run() {
-                            final CollectionDO collectionDO = new CollectionDO(id, backdropPath, new StringMultiLang(locale, name), posterPath);
-                            collectionDO.setCollectionPartDM(collectionPartDM);
-                            callback.execute(collectionDO);
+                    if (executeCallbackInEDT)
+                        TMDBController.this.updatesExecutor.execute(new Runnable() {
 
-                        }
-                    });
+                            @Override
+                            public void run() {
+                                callback.execute(collectionDO);
+
+                            }
+                        });
+                    else
+                        callback.execute(collectionDO);
                 } catch (final IOException e) {
                     e.printStackTrace();
                 }

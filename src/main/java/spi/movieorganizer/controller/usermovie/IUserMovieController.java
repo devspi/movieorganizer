@@ -15,6 +15,8 @@ public interface IUserMovieController {
 
     void removeFromUserMovie(List<Integer> movieIds);
 
-    void addToUserMovie(TMDBRequestType type, Integer itemId, UserMovieSettings settings);
+    // void addToUserMovie(TMDBRequestType type, Integer itemId, UserMovieSettings settings);
+
+    void addToUserMovie(TMDBRequestType type, Integer itemId, UserMovieSettings settings, Runnable onRequestDone);
 
 }

@@ -101,6 +101,14 @@ public class LoadMoviePanel extends JPanel {
         revalidate();
     }
 
+    public List<AbstractSelectableItemPanel> getSelectedItemPanels() {
+        final List<AbstractSelectableItemPanel> itemPanels = new ArrayList<>();
+        for (final AbstractSelectableItemPanel panel : this.selectablePanels)
+            if (panel.isSelected())
+                itemPanels.add(panel);
+        return itemPanels;
+    }
+
     public List<SelectedItemData> getSelectedItemsData() {
         final List<SelectedItemData> itemDatas = new ArrayList<>();
         for (final AbstractSelectableItemPanel panel : this.selectablePanels)
@@ -112,4 +120,5 @@ public class LoadMoviePanel extends JPanel {
     public String getFileName() {
         return this.fileName;
     }
+
 }

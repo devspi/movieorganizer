@@ -191,7 +191,7 @@ public class UserMovieTablePanel extends JPanel {
                                 public void execute(final MovieDO arg0) {
                                     UserMovieTablePanel.this.detailPanel.setMovie(arg0);
                                 }
-                            });
+                            }, true);
                 }
         }
     }

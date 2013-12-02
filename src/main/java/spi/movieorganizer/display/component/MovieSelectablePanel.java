@@ -17,6 +17,9 @@ public class MovieSelectablePanel extends AbstractSelectableItemPanel {
         final String src = movieDO.getPosterPath() != null ? TMDBController.BASE_URL + "w92" + movieDO.getPosterPath() : "http://d3a8mw37cqal2z.cloudfront.net/assets/e6497422f20fa74/images/no-poster-w92.jpg";
         this.posterLabel.setText("<html><img src=\"" + src + "\"></html>");
         this.titleLabel.setText("<html>" + movieDO.getTitle(Locale.FRENCH) + "</html>");
+
+        if (this.userMovieDM.hasDataObjectKey(movieDO.getIdentifier()))
+            fireItemAdded("<html>Movie already in your collection.<html>");
     }
 
     @Override
